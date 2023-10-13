@@ -41,13 +41,14 @@ def datetoepoch():
     )
     if date_entry:
         year, month, day, hour, minute, second = map(int, date_entry.split("-"))
-        expirydate = datetime.datetime(year, month, day, hour, minute, second)
-        expirydate = expirydate.strftime("%s")
-        currentdate = datetime.datetime.now()
-        currentdate = currentdate.strftime("%s")
+        expirydate = int(datetime.datetime(year, month, day, hour, minute, second).timestamp())
+        print(expirydate)
+        currentdate = int(datetime.datetime.now().timestamp())
+        print(currentdate)
+
     else:
         return 0
-    if int(expirydate) < int(currentdate):
+    if expirydate < currentdate:
         print("\nDate entered must be greater than current date!\n")
         datetoepoch()
     else:
@@ -211,7 +212,8 @@ def listlocks(api_session, uri):
     if df.empty:
         print("\nThere are no locks for Snapshot ID " + str(snapid) + "!\n")
     else:
-        df["expires"] = datetime.datetime.fromtimestamp(df["expires"])
+        df["expires"] = pd.to_datetime(df["expires"], unit='s')
+        df.columns.values[1] = "expires(GMT)"
         print("\n\nList of Locks for Snapshot ID " + str(snapid) + ": \n")
         print(df.to_string(index=False))
         print("\n\nTake note of the Lock ID!")
