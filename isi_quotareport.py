@@ -42,13 +42,12 @@ Welcome to
 
 def getsession(uri):
     """This function gets a session and sets headers, returns session"""
-
     creds = "creds.json"
     if os.path.isfile(creds):
-        f = open(creds, "r", encoding="utf-8")
-        data = json.load(f)
-        user = data["username"]
-        p = base64.b64decode(data["password"]).decode("utf-8")
+        with open(creds, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            user = data["username"]
+            p = base64.b64decode(data["password"]).decode("utf-8")
     elif os.path.isfile(creds) is False:
         user = input("Please provide your user name? \n")
         print("\nPlease provide the password for your user account...\n")
