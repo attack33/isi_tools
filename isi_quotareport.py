@@ -1,4 +1,5 @@
 from getpass import getpass
+import argparse
 import base64
 import sys
 import os
@@ -164,14 +165,15 @@ def getquotareport(api_session, uri, unit):
 
 
 def main():
-    """This function is the main function that runs the isi_snaplock"""
+    """This function is the main function that runs the isi_quotareport"""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    if len(sys.argv) < 3:
-        print("\nargs missing")
-        sys.exit(1)
-    ip = str(sys.argv[1])
-    unit = str(sys.argv[2])
 
+    parser = argparse.ArgumentParser(description="Generate a Quota Report")
+    parser.add_argument("ip", help="Enter a valid IP address")
+    parser.add_argument("unit", help="Enter an M for MB, G for GB, or T for TB")
+    args = parser.parse_args()
+    ip = args.ip
+    unit = args.unit
     validateinput(ip, unit)
 
     printbanner()

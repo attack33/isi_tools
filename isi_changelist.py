@@ -1,4 +1,5 @@
 from time import sleep
+import argparse
 import base64
 from getpass import getpass
 import os
@@ -240,11 +241,10 @@ def deletechangelist(api_session, uri):
 def main():
     """This function is the main function that runs the Changelist Tool"""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    if len(sys.argv) < 2:
-        print("\nargs missing")
-        sys.exit(1)
-    ip = str(sys.argv[1])
-
+    parser = argparse.ArgumentParser(description="Menu driven changelist tool")
+    parser.add_argument("ip", help="Enter a valid IP address")
+    args = parser.parse_args()
+    ip = args.ip
     validateinput(ip)
 
     port = 8080

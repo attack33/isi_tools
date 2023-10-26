@@ -1,4 +1,5 @@
 from getpass import getpass
+import argparse
 import sys
 import base64
 import os
@@ -44,10 +45,7 @@ def datetoepoch():
         expirydate = int(
             datetime.datetime(year, month, day, hour, minute, second).timestamp()
         )
-        print(expirydate)
         currentdate = int(datetime.datetime.now().timestamp())
-        print(currentdate)
-
     else:
         return 0
     if expirydate < currentdate:
@@ -264,10 +262,10 @@ def displaymenu():
 def main():
     """This function is the main function that runs the isi_snaplock"""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    if len(sys.argv) < 2:
-        print("\nargs missing")
-        sys.exit(1)
-    ip = str(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Menu driven snaplock tool")
+    parser.add_argument("ip", help="Enter a valid IP address")
+    args = parser.parse_args()
+    ip = args.ip
 
     validateinput(ip)
     printbanner()

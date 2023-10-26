@@ -1,4 +1,5 @@
 from getpass import getpass
+import argparse
 import base64
 import os
 import sys
@@ -105,11 +106,11 @@ def breaklock(closelocksession, uri, fileid):
 def main():
     """This function is the main function that runs the Locksmith Tool"""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    if len(sys.argv) < 3:
-        print("\nargs missing")
-        sys.exit(1)
-    ip = str(sys.argv[1])
-    filename = str(sys.argv[2])
+    parser = argparse.ArgumentParser(description="Menu driven file lock break tool")
+    parser.add_argument("filename", help="Enter a filename or substring of a filename ")
+    args = parser.parse_args()
+    filename = args.filename
+    printbanner()
     iplist = input(
         "Please provide a list of IP addresses to check for open files!\n"
         + "Example: 10.x.x.x,10.x.x.x-x (comma separated, no spaces, use"
@@ -137,7 +138,7 @@ def main():
             "\nHere is a list of files similar to your filename across the node IPs you provided.\n"
         )
         print("Please take note of the ID you would like to close.\n")
-        print(df)
+        print(df.to_string(index=False))
         fileid = input(
             "\n\nPlease provide the ID of the file you would like to close from the table above: \n"
         )
@@ -175,5 +176,4 @@ def main():
 
 
 if __name__ == "__main__":
-    printbanner()
     main()
