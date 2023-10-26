@@ -11,8 +11,8 @@ If you feel this is a bit advanced for your current understanding of how to inte
 
 <h3>Getting started with isi_tools</h3>
 1. Clone the repo and run 'pip install -r requirements.txt'<br /><br />
-2. isi_tools starts with a decision on whether you want to run config.py and supply your user name and password. This is your personal choice. BEWARE: your password will be stored base64 encoded in a file called creds.json within isi_tools directory. This will allow you run any tool without supplying credentials each time. If you run config.py and then want to delete creds.json after you're done, then go ahead! You have the choice to run it next time you interact with the repo or not.<br /><br />
-3. isi_tools has menu driven tools which require user input. These are prefixed with "isi_".<br />isi_tools also has tools which take arguments when they are executed so they can be ran without any user input. These are not prefixed with "isi_".<br /><br />
+2. isi_tools starts with a decision on whether you want to run config.py and supply your user name and password. This is your personal choice. BEWARE: your password will be stored base64 encoded in a file called creds.json within isi_tools directory. This will allow you run any "isi_" prefixed tool without supplying credentials each time. If you run config.py and then want to delete creds.json after you're done, then go ahead! You have the choice to run it next time you interact with the repo or not.<br /><br />
+3. isi_tools has menu driven tools which require user input. These are prefixed with "isi_".<br />isi_tools also has tools which take arguments when they are executed so they don't require any user input. These are not prefixed with "isi_" AND they require config.py to get credentials.<br /><br />
 4. Each tool has a '-h' switch to help with syntax. Example: python isi_snaplock.py -h<br /><br />
 5. Each tool logs its activity with Powerscale API and whether it was successful or not in isi_tools.log. This is meant for you to be able to see historically what operations have occurred. If it gets too big, or if you do not want to keep it around. Delete it. It will regenerate.
 
