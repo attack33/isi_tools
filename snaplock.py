@@ -1,5 +1,6 @@
 from getpass import getpass
 import argparse
+import logging
 import sys
 import base64
 import os
@@ -57,8 +58,10 @@ def getsession(uri):
         uri + "/session/1/session", data=data, headers=headers, verify=False
     )
     if response.status_code == 200 or response.status_code == 201:
+        logging.info("API session created successfully at " + uri)
         print("Session to " + uri + " established.\n")
     elif response.status_code != 200 or response.status_code != 201:
+        logging.info("Creation of API session  at " + uri + " unsuccessful")
         print(
             "\nSession to "
             + uri
@@ -80,10 +83,19 @@ def locksnapshot(api_session, uri, snapid, timestamp):
             noxdata = json.dumps({"comment": "This lock was created by isi_snaplock."})
             response = api_session.post(uri + resourceurl, data=noxdata, verify=False)
             if response.status_code == 200 or response.status_code == 201:
+                logging.info("POST request at " + uri + resourceurl + " successful")
                 response = json.loads(response.content.decode(encoding="UTF-8"))
                 lockid = response["id"]
-                print("\nLock ID " + str(lockid) + " created.")
+                print(
+                    "\nLock ID "
+                    + str(lockid)
+                    + " created "
+                    + "on snap ID "
+                    + snap
+                    + "!\n"
+                )
             elif response.status_code != 200 or response.status_code != 201:
+                logging.info("POST request at " + uri + resourceurl + " unsuccessful")
                 print("\nLock creation encountered an issue. Try again!")
         elif timestamp != 0:
             xdata = json.dumps(
@@ -94,12 +106,14 @@ def locksnapshot(api_session, uri, snapid, timestamp):
             )
             response = api_session.post(uri + resourceurl, data=xdata, verify=False)
             if response.status_code == 200 or response.status_code == 201:
+                logging.info("POST request at " + uri + resourceurl + " successful")
                 response = json.loads(response.content.decode(encoding="UTF-8"))
                 lockid = response["id"]
                 print(
                     "\nLock ID " + str(lockid) + " created on snap ID " + snap + "!\n"
                 )
             elif response.status_code != 200 or response.status_code != 201:
+                logging.info("POST request at " + uri + resourceurl + " unsuccessful")
                 print(
                     "\nLock creation encountered an issue on snap ID "
                     + snap
@@ -127,6 +141,13 @@ def main():
 
     ip = args.ip
     snapid = args.snapid
+
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        filename="isi_tools.log",
+        level=logging.INFO,
+    )
+
     validateinput(ip)
     snapid = snapid.split(",")
     if args.timestamp is not None:

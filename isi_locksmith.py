@@ -1,5 +1,6 @@
 from getpass import getpass
 import argparse
+import logging
 import base64
 import os
 import sys
@@ -43,8 +44,10 @@ def getsession(uri):
         uri + "/session/1/session", data=data, headers=headers, verify=False
     )
     if response.status_code == 200 or response.status_code == 201:
+        logging.info("API session created successfully at " + uri)
         print("Session to " + uri + " established.\n")
     elif response.status_code != 200 or response.status_code != 201:
+        logging.info("Creation of API session  at " + uri + " unsuccessful")
         print(
             "\nSession to "
             + uri
@@ -76,12 +79,14 @@ def getfileid(api_session, uri, ip, filename):
     fileslist = []
     opfinfo = api_session.get(uri + opfuri, verify=False)
     if opfinfo.status_code == 200 or opfinfo.status_code == 201:
+        logging.info("GET request at " + uri + opfuri + " successful")
         opfinfo = json.loads(opfinfo.content.decode(encoding="UTF-8"))
         for item in opfinfo["openfiles"]:
             if filename in item.get("file"):
                 item["node_ip"] = ip
                 fileslist.append(item)
     elif opfinfo.status_code != 200 or opfinfo.status_code != 201:
+        logging.info("GET request at " + uri + opfuri + " unsuccessful")
         print(
             "\nIssue encountered with listing openfiles on "
             + uri
@@ -96,9 +101,11 @@ def breaklock(closelocksession, uri, fileid):
     closeuri = "/platform/1/protocols/smb/openfiles/" + fileid
     response = closelocksession.delete(uri + closeuri, verify=False)
     if response.status_code == 204:
+        logging.info("DELETE request at " + uri + closeuri + " successful")
         print("\nThe file associated with ID " + fileid + " has been closed.\n")
         exit()
     elif response.status_code != 204:
+        logging.info("DELETE request at " + uri + closeuri + " unsuccessful")
         print("\nIssue encountered closing the file. Please try again.\n")
     return None
 
@@ -110,6 +117,13 @@ def main():
     parser.add_argument("filename", help="Enter a filename or substring of a filename ")
     args = parser.parse_args()
     filename = args.filename
+
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        filename="isi_tools.log",
+        level=logging.INFO,
+    )
+
     printbanner()
     iplist = input(
         "Please provide a list of IP addresses to check for open files!\n"

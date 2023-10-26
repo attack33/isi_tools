@@ -1,5 +1,6 @@
 from getpass import getpass
 import argparse
+import logging
 import base64
 import sys
 import os
@@ -63,7 +64,9 @@ def getsession(uri):
     )
     if response.status_code == 200 or response.status_code == 201:
         print("Session to " + uri + " established.\n")
+        logging.info("API session created successfully at " + uri)
     elif response.status_code != 200 or response.status_code != 201:
+        logging.info("Creation of API session at " + uri + " unsuccessful")
         print(
             "\nSession to "
             + uri
@@ -154,8 +157,10 @@ def getquotareport(api_session, uri, unit):
     result = api_session.get(uri + resourceurl, verify=False)
     if result.status_code == 200 or result.status_code == 201:
         result = json.loads(result.content.decode(encoding="UTF-8"))
+        logging.info("GET request at " + uri + resourceurl + " successful")
         createquotareport(result, unit)
     elif result.status_code != 200 or result.status_code != 201:
+        logging.info("GET request at " + uri + resourceurl + " unsuccessful")
         print(
             "\nIssue encountered with retrieving quotas at "
             + uri
@@ -174,8 +179,14 @@ def main():
     args = parser.parse_args()
     ip = args.ip
     unit = args.unit
-    validateinput(ip, unit)
 
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        filename="isi_tools.log",
+        level=logging.INFO,
+    )
+
+    validateinput(ip, unit)
     printbanner()
 
     port = 8080
