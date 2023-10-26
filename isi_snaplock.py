@@ -41,7 +41,9 @@ def datetoepoch():
     )
     if date_entry:
         year, month, day, hour, minute, second = map(int, date_entry.split("-"))
-        expirydate = int(datetime.datetime(year, month, day, hour, minute, second).timestamp())
+        expirydate = int(
+            datetime.datetime(year, month, day, hour, minute, second).timestamp()
+        )
         print(expirydate)
         currentdate = int(datetime.datetime.now().timestamp())
         print(currentdate)
@@ -76,7 +78,7 @@ def getsession(uri):
         uri + "/session/1/session", data=data, headers=headers, verify=False
     )
     if response.status_code == 200 or response.status_code == 201:
-        print("Session to " + uri + " established.")
+        print("Session to " + uri + " established.\n")
     elif response.status_code != 200 or response.status_code != 201:
         print(
             "\nSession to "
@@ -107,7 +109,7 @@ def getsnapshots(api_session, uri):
         snapresult["snapshots"], columns=["id", "name", "path", "size", "has_locks"]
     )
     if df.empty:
-        print("There are no snapshots!")
+        print("\nThere are no snapshots!")
         return 0
     else:
         csvinquiry = input(
@@ -212,7 +214,7 @@ def listlocks(api_session, uri):
     if df.empty:
         print("\nThere are no locks for Snapshot ID " + str(snapid) + "!\n")
     else:
-        df["expires"] = pd.to_datetime(df["expires"], unit='s')
+        df["expires"] = pd.to_datetime(df["expires"], unit="s")
         df.columns.values[1] = "expires(GMT)"
         print("\n\nList of Locks for Snapshot ID " + str(snapid) + ": \n")
         print(df.to_string(index=False))

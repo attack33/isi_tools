@@ -42,7 +42,7 @@ def getsession(uri):
         uri + "/session/1/session", data=data, headers=headers, verify=False
     )
     if response.status_code == 200 or response.status_code == 201:
-        print("Session to " + uri + " established.")
+        print("Session to " + uri + " established.\n")
     elif response.status_code != 200 or response.status_code != 201:
         print(
             "\nSession to "
@@ -90,7 +90,7 @@ def getfileid(api_session, uri, ip, filename):
     return fileslist
 
 
-def breaklock(closelocksession, uri, fileid, answer):
+def breaklock(closelocksession, uri, fileid):
     """This function breaks a lock by file ID"""
     closeuri = "/platform/1/protocols/smb/openfiles/" + fileid
     response = closelocksession.delete(uri + closeuri, verify=False)
@@ -113,13 +113,10 @@ def main():
     iplist = input(
         "Please provide a list of IP addresses to check for open files!\n"
         + "Example: 10.x.x.x,10.x.x.x-x (comma separated, no spaces, use"
-        + "'-' for a range of IP's):\n"
+        + "'-' for a range of sequential IP's):\n"
     )
     iplist = getiplist(iplist)
     port = 8080
-    uri = "https://" + str(ip) + ":" + str(port)
-
-    api_session = getsession(uri)
 
     listoffiles = []
     for ip in iplist:
@@ -130,44 +127,51 @@ def main():
             listoffiles.extend(files)
         elif listoffiles is None:
             break
-    print(
-        "\nHere is a list of files similar to your filename across the node IPs you provided.\n"
-    )
-    print("Please take note of the ID you would like to close.\n")
     pd.set_option("display.max_rows", None)
     df = pd.DataFrame(listoffiles)
-    print(df)
-    fileid = input(
-        "\n\nPlease provide the ID of the file you would like to close from the table above: \n"
-    )
-    answer = str(
-        input(
-            "\nAre you absolutely sure that ID "
-            + fileid
-            + " is what you would like to close? Enter 'y' or "
-            "'n'...\n"
-        )
-    )
-    if answer == "n":
-        print("\nYou have selected no. Please run the script again")
+    if df.empty:
+        print("Cannot find an instance of " + filename + " open!\n")
         sys.exit()
-    elif answer == "y":
-        for index in enumerate(listoffiles):
-            if int(listoffiles[index]["id"]) == int(fileid):
-                nodeip = str(listoffiles[index]["node_ip"])
-                uri = "https://" + str(nodeip) + ":" + str(port)
-                closelocksession = getsession(uri)
-                breaklock(closelocksession, uri, fileid, answer)
-            else:
-                continue
-        if nodeip is None:
-            print("You have input an ID that does not exist. Please try again.")
-            sys.exit()
-    elif answer != "y" and answer != "n":
+    else:
         print(
-            "\nYou input a character outside of allowed options. Please run the script again.\n"
+            "\nHere is a list of files similar to your filename across the node IPs you provided.\n"
         )
-        sys.exit()
+        print("Please take note of the ID you would like to close.\n")
+        print(df)
+        fileid = input(
+            "\n\nPlease provide the ID of the file you would like to close from the table above: \n"
+        )
+        answer = str(
+            input(
+                "\nAre you absolutely sure that ID "
+                + fileid
+                + " is what you would like to close? Enter 'y' or "
+                "'n'...\n"
+            )
+        )
+        if answer == "n":
+            print("\nYou have selected no. Please run the script again")
+            sys.exit()
+        elif answer == "y":
+            idlist = []
+            for file in listoffiles:
+                idlist.append(int(file["id"]))
+            if int(fileid) not in idlist:
+                print(
+                    "You have provided an ID that is not associated with an open file!"
+                )
+                sys.exit()
+            for file in listoffiles:
+                if int(file["id"]) == int(fileid):
+                    nodeip = str(file["node_ip"])
+                    uri = "https://" + str(nodeip) + ":" + str(port)
+                    closelocksession = getsession(uri)
+                    breaklock(closelocksession, uri, fileid)
+        elif answer != "y" and answer != "n":
+            print(
+                "\nYou input a character outside of allowed options. Please run the script again.\n"
+            )
+            sys.exit()
 
 
 if __name__ == "__main__":

@@ -61,7 +61,7 @@ def getsession(uri):
         uri + "/session/1/session", data=data, headers=headers, verify=False
     )
     if response.status_code == 200 or response.status_code == 201:
-        print("Session to " + uri + " established.")
+        print("Session to " + uri + " established.\n")
     elif response.status_code != 200 or response.status_code != 201:
         print(
             "\nSession to "

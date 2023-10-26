@@ -55,7 +55,7 @@ def getsession(uri):
         uri + "/session/1/session", data=data, headers=headers, verify=False
     )
     if response.status_code == 200 or response.status_code == 201:
-        print("Session to " + uri + " established.")
+        print("Session to " + uri + " established.\n")
     elif response.status_code != 200 or response.status_code != 201:
         print(
             "\nSession to "
@@ -183,11 +183,14 @@ def listchangelists(api_session, uri):
     resourceurl = "/platform/3/snapshot/changelists"
     result = api_session.get(uri + resourceurl, verify=False).json()
     print("List of ChangeLists:\n")
-    return print(
-        pd.DataFrame(
-            result["changelists"], columns=["id", "job_id", "root_path", "num_entries"]
-        )
+    df = pd.DataFrame(
+        result["changelists"], columns=["id", "job_id", "root_path", "num_entries"]
     )
+    if df.empty:
+        print("There are no changelists!\n\n")
+        return 0
+    else:
+        return print(df.to_string(index=False))
 
 
 def getchangelist(api_session, uri):
@@ -263,7 +266,6 @@ def main():
         elif choice == "3":
             print("\n\n")
             listchangelists(api_session, uri)
-            print("\nTake note of the ChangeList ID!\n")
         elif choice == "4":
             getchangelist(api_session, uri)
             print("\n\n")
