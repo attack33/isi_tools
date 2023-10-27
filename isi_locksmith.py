@@ -113,7 +113,7 @@ def breaklock(closelocksession, uri, fileid):
 def main():
     """This function is the main function that runs the Locksmith Tool"""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    parser = argparse.ArgumentParser(description="Menu driven file lock break tool")
+    parser = argparse.ArgumentParser(description="File lock break tool")
     parser.add_argument("filename", help="Enter a filename or substring of a filename ")
     args = parser.parse_args()
     filename = args.filename

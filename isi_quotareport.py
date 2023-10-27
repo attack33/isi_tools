@@ -85,6 +85,7 @@ def createquotareport(result, unit):
         print("There are no quotas!")
         return 0
     else:
+        pd.set_option("display.max_rows", None)
         df = pd.DataFrame(
             df,
             columns=[

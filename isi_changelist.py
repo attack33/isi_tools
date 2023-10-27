@@ -100,6 +100,7 @@ def getsnapshots(api_session, uri):
         )
         logging.info("GET request at " + uri + resourceurl + " unsuccessful")
         return 0
+    pd.set_option("display.max_rows", None)
     df = pd.DataFrame(snapresult["snapshots"], columns=["id", "name", "path", "size"])
     if df.empty:
         print("There are no snapshots!")
@@ -201,6 +202,7 @@ def listchangelists(api_session, uri):
         logging.info("GET request at " + uri + resourceurl + " successful")
         result = result.json()
         print("List of ChangeLists:\n")
+        pd.set_option("display.max_rows", None)
         df = pd.DataFrame(
             result["changelists"], columns=["id", "job_id", "root_path", "num_entries"]
         )
@@ -234,6 +236,7 @@ def getchangelist(api_session, uri):
         logging.info("GET request at " + uri + resourceurl + " successful")
         result = result.json()
         entries = result["entries"]
+        pd.set_option("display.max_rows", None)
         df = pd.DataFrame(
             entries, columns=["path", "size", "physical_size", "change_types"]
         )
@@ -279,11 +282,13 @@ def main():
     args = parser.parse_args()
     ip = args.ip
 
+
     logging.basicConfig(
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format="%(asctime)s - f'{user} - %(levelname)s - %(message)s",
         filename="isi_tools.log",
-        level=logging.INFO,
+        level=logging.INFO
     )
+
 
     validateinput(ip)
 

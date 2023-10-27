@@ -108,6 +108,7 @@ def getsnapshots(api_session, uri):
             + " Please try again.\n"
         )
         return 0
+    pd.set_option("display.max_rows", None)
     df = pd.DataFrame(
         snapresult["snapshots"], columns=["id", "name", "path", "size", "has_locks"]
     )
@@ -221,6 +222,7 @@ def listlocks(api_session, uri):
             + " Please try again.\n"
         )
         displaymenu()
+    pd.set_option("display.max_rows", None)
     df = pd.DataFrame(locklist["locks"], columns=["id", "expires", "comment", "count"])
     if df.empty:
         print("\nThere are no locks for Snapshot ID " + str(snapid) + "!\n")
