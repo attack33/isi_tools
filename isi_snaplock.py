@@ -77,31 +77,31 @@ def getsession(uri):
         uri + "/session/1/session", data=data, headers=headers, verify=False
     )
     if response.status_code == 200 or response.status_code == 201:
-        logging.info("API session created successfully at " + uri)
         print("Session to " + uri + " established.\n")
+        logging.info("API session created successfully by " + user + " at " + uri)
     elif response.status_code != 200 or response.status_code != 201:
-        logging.info("Creation of API session  at " + uri + " unsuccessful")
         print(
             "\nSession to "
             + uri
             + " not established. Please check your password, user name, or IP and try again.\n"
         )
+        logging.info("Creation of API session by " + user + " at " + uri + " unsuccessful")
         sys.exit()
     api_session.headers["referer"] = uri
     api_session.headers["X-CSRF-Token"] = api_session.cookies.get("isicsrf")
-    return api_session
+    return api_session, user
 
 
 def getsnapshots(api_session, uri):
     """This function lists all Snapshots,then prompts to write to csv,
     then prints the dataframe"""
     resourceurl = "/platform/1/snapshot/snapshots"
-    snapresult = api_session.get(uri + resourceurl, verify=False)
+    snapresult = api_session[0].get(uri + resourceurl, verify=False)
     if snapresult.status_code == 200 or snapresult.status_code == 201:
-        logging.info("GET request at " + uri + resourceurl + " successful")
+        logging.info("GET request at by " + api_session[1] + " at " + uri + resourceurl + " successful")
         snapresult = json.loads(snapresult.content.decode(encoding="UTF-8"))
     elif snapresult.status_code != 200 or snapresult.status_code != 201:
-        logging.info("GET request at " + uri + resourceurl + " unsuccessful")
+        logging.info("GET request at by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print(
             "\nIssue encountered with retrieving snapshots at "
             + uri
@@ -144,12 +144,12 @@ def locksnapshot(api_session, uri):
     snapid = input("\nWhat is the ID of the snapshot you would like to lock?\n")
     epoch = datetoepoch()
     resourceurl = "/platform/12/snapshot/snapshots/" + snapid + "/locks"
-    lockcount = api_session.get(uri + resourceurl, verify=False)
+    lockcount = api_session[0].get(uri + resourceurl, verify=False)
     if lockcount.status_code == 200 or lockcount.status_code == 201:
-        logging.info("GET request at " + uri + resourceurl + " successful")
+        logging.info("GET request at by " + api_session[1] + " at " + uri + resourceurl + " successful")
         lockcount = json.loads(lockcount.content.decode(encoding="UTF-8"))
     elif lockcount.status_code != 200 or lockcount.status_code != 201:
-        logging.info("GET request at " + uri + resourceurl + " unsuccessful")
+        logging.info("GET request at by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print(
             "\nIssue encountered with retrieving the # of locks currently on Snapshot ID: "
             + snapid
@@ -173,27 +173,27 @@ def locksnapshot(api_session, uri):
         print("\nProceeding with creation of snapshot lock...\n")
         if epoch == 0:
             noxdata = json.dumps({"comment": "This lock was created by isi_snaplock."})
-            response = api_session.post(uri + resourceurl, data=noxdata, verify=False)
+            response = api_session[0].post(uri + resourceurl, data=noxdata, verify=False)
             if response.status_code == 200 or response.status_code == 201:
-                logging.info("POST request at " + uri + resourceurl + " successful")
+                logging.info("POST request by " + api_session[1] + " at " + uri + resourceurl + " successful")
                 response = json.loads(response.content.decode(encoding="UTF-8"))
                 lockid = response["id"]
                 print("\nLock ID " + str(lockid) + " created.")
             elif response.status_code != 200 or response.status_code != 201:
-                logging.info("POST request at " + uri + resourceurl + " unsuccessful")
+                logging.info("POST request by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
                 print("\nLock creation encountered an issue. Try again!")
         elif epoch != 0:
             xdata = json.dumps(
                 {"comment": "This lock was created by isi_snaplock.", "expires": epoch}
             )
-            response = api_session.post(uri + resourceurl, data=xdata, verify=False)
+            response = api_session[0].post(uri + resourceurl, data=xdata, verify=False)
             if response.status_code == 200 or response.status_code == 201:
-                logging.info("POST request at " + uri + resourceurl + " successful")
+                logging.info("POST requestby " + api_session[1] + " at " + uri + resourceurl + " successful")
                 response = json.loads(response.content.decode(encoding="UTF-8"))
                 lockid = response["id"]
                 print("\nLock ID " + str(lockid) + " created.\n")
             elif response.status_code != 200 or response.status_code != 201:
-                logging.info("POST request at " + uri + resourceurl + " unsuccessful")
+                logging.info("POST request by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
                 print("\nLock creation encountered an issue. Try again!")
     elif lockcount >= 16:
         print(
@@ -210,12 +210,12 @@ def listlocks(api_session, uri):
         "\nWhat is the ID of the snapshot that you want to list all locks?\n"
     )
     resourceurl = "/platform/12/snapshot/snapshots/" + snapid + "/locks"
-    locklist = api_session.get(uri + resourceurl, verify=False)
+    locklist = api_session[0].get(uri + resourceurl, verify=False)
     if locklist.status_code == 200 or locklist.status_code == 201:
-        logging.info("GET request at " + uri + resourceurl + " successful")
+        logging.info("GET request by " + api_session[1] + " at " + uri + resourceurl + " successful")
         locklist = json.loads(locklist.content.decode(encoding="UTF-8"))
     elif locklist.status_code != 200 or locklist.status_code != 201:
-        logging.info("GET request at " + uri + resourceurl + " unsuccessful")
+        logging.info("GET request by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print(
             "\nIssue encountered with retrieving the list of locks currently on Snapshot ID: "
             + snapid
@@ -243,12 +243,12 @@ def delete1lock(api_session, uri):
         + "?\n"
     )
     resourceurl = "/platform/12/snapshot/snapshots/" + snapid + "/locks/" + lockid
-    response = api_session.delete(uri + resourceurl, verify=False)
+    response = api_session[0].delete(uri + resourceurl, verify=False)
     if response.status_code == 200 or response.status_code == 204:
-        logging.info("DELETE request at " + uri + resourceurl + " successful")
+        logging.info("DELETE request by " + api_session[1] + " at " + uri + resourceurl + " successful")
         print("\nLock ID " + str(lockid) + " deleted.")
     elif response.status_code != 200 or response.status_code != 204:
-        logging.info("DELETE request at " + uri + resourceurl + " unsuccessful")
+        logging.info("DELETE request by " + api_session[1] + " at "  + uri + resourceurl + " unsuccessful")
         print("\nLock deletion encountered an issue. Try again!\n")
 
 
@@ -258,12 +258,12 @@ def deletealllocks(api_session, uri):
         "\nWhat is the ID of the snapshot that you want to delete ALL locks?\n"
     )
     resourceurl = "/platform/12/snapshot/snapshots/" + snapid + "/locks"
-    response = api_session.delete(uri + resourceurl, verify=False)
+    response = api_session[0].delete(uri + resourceurl, verify=False)
     if response.status_code == 200 or response.status_code == 204:
-        logging.info("DELETE request at " + uri + resourceurl + " successful")
+        logging.info("DELETE request by " + api_session[1] + " at " + uri + resourceurl + " successful")
         print("\nAll locks deleted for Snapshot ID " + str(snapid))
     elif response.status_code != 200 or response.status_code != 204:
-        logging.info("DELETE request at " + uri + resourceurl + " unsuccessful")
+        logging.info("DELETE request by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print("\nLock deletion encountered an issue. Try again!\n")
 
 

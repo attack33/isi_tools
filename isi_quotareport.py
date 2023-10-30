@@ -64,18 +64,18 @@ def getsession(uri):
     )
     if response.status_code == 200 or response.status_code == 201:
         print("Session to " + uri + " established.\n")
-        logging.info("API session created successfully at " + uri)
+        logging.info("API session created successfully by " + user + " at " + uri)
     elif response.status_code != 200 or response.status_code != 201:
-        logging.info("Creation of API session at " + uri + " unsuccessful")
         print(
             "\nSession to "
             + uri
             + " not established. Please check your password, user name, or IP and try again.\n"
         )
+        logging.info("Creation of API session by " + user + " at " + uri + " unsuccessful")
         sys.exit()
     api_session.headers["referer"] = uri
     api_session.headers["X-CSRF-Token"] = api_session.cookies.get("isicsrf")
-    return api_session
+    return api_session, user
 
 
 def createquotareport(result, unit):
@@ -155,13 +155,13 @@ def createquotareport(result, unit):
 def getquotareport(api_session, uri, unit):
     """This function gets a quota report and passes it to createquotareport"""
     resourceurl = "/platform/15/quota/quotas"
-    result = api_session.get(uri + resourceurl, verify=False)
+    result = api_session[0].get(uri + resourceurl, verify=False)
     if result.status_code == 200 or result.status_code == 201:
         result = json.loads(result.content.decode(encoding="UTF-8"))
-        logging.info("GET request at " + uri + resourceurl + " successful")
+        logging.info("GET request by " + api_session[1] + " at " + uri + resourceurl + " successful")
         createquotareport(result, unit)
     elif result.status_code != 200 or result.status_code != 201:
-        logging.info("GET request at " + uri + resourceurl + " unsuccessful")
+        logging.info("GET request  by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print(
             "\nIssue encountered with retrieving quotas at "
             + uri

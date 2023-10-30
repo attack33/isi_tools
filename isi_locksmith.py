@@ -44,19 +44,19 @@ def getsession(uri):
         uri + "/session/1/session", data=data, headers=headers, verify=False
     )
     if response.status_code == 200 or response.status_code == 201:
-        logging.info("API session created successfully at " + uri)
         print("Session to " + uri + " established.\n")
+        logging.info("API session created successfully by " + user + " at " + uri)
     elif response.status_code != 200 or response.status_code != 201:
-        logging.info("Creation of API session  at " + uri + " unsuccessful")
         print(
             "\nSession to "
             + uri
             + " not established. Please check your password, user name, or IP and try again.\n"
         )
+        logging.info("Creation of API session by " + user + " at " + uri + " unsuccessful")
         sys.exit()
     api_session.headers["referer"] = uri
     api_session.headers["X-CSRF-Token"] = api_session.cookies.get("isicsrf")
-    return api_session
+    return api_session, user
 
 
 def getiplist(ipinput):
@@ -77,16 +77,16 @@ def getfileid(api_session, uri, ip, filename):
     print("\nGathering related openfiles on " + uri + "...\n")
     opfuri = "/platform/1/protocols/smb/openfiles"
     fileslist = []
-    opfinfo = api_session.get(uri + opfuri, verify=False)
+    opfinfo = api_session[0].get(uri + opfuri, verify=False)
     if opfinfo.status_code == 200 or opfinfo.status_code == 201:
-        logging.info("GET request at " + uri + opfuri + " successful")
+        logging.info("GET request by " + api_session[1] + " at " + uri + opfuri + " successful")
         opfinfo = json.loads(opfinfo.content.decode(encoding="UTF-8"))
         for item in opfinfo["openfiles"]:
             if filename in item.get("file"):
                 item["node_ip"] = ip
                 fileslist.append(item)
     elif opfinfo.status_code != 200 or opfinfo.status_code != 201:
-        logging.info("GET request at " + uri + opfuri + " unsuccessful")
+        logging.info("GET request by " + api_session[1] + " at " + uri + opfuri + " unsuccessful")
         print(
             "\nIssue encountered with listing openfiles on "
             + uri
@@ -99,13 +99,13 @@ def getfileid(api_session, uri, ip, filename):
 def breaklock(closelocksession, uri, fileid):
     """This function breaks a lock by file ID"""
     closeuri = "/platform/1/protocols/smb/openfiles/" + fileid
-    response = closelocksession.delete(uri + closeuri, verify=False)
+    response = closelocksession[0].delete(uri + closeuri, verify=False)
     if response.status_code == 204:
-        logging.info("DELETE request at " + uri + closeuri + " successful")
+        logging.info("DELETE request by " + closelocksession[1] + " at " + uri + closeuri + " successful")
         print("\nThe file associated with ID " + fileid + " has been closed.\n")
         exit()
     elif response.status_code != 204:
-        logging.info("DELETE request at " + uri + closeuri + " unsuccessful")
+        logging.info("DELETE request by " + closelocksession[1] + " at " + uri + closeuri + " unsuccessful")
         print("\nIssue encountered closing the file. Please try again.\n")
     return None
 
