@@ -58,18 +58,18 @@ def getsession(uri):
     )
     if response.status_code == 200 or response.status_code == 201:
         print("Session to " + uri + " established.\n")
-        logging.info("API session created successfully at " + uri)
+        logging.info("API session created successfully by " + user + " at " + uri)
     elif response.status_code != 200 or response.status_code != 201:
         print(
             "\nSession to "
             + uri
             + " not established. Please check your password, user name, or IP and try again.\n"
         )
-        logging.info("Creation of API session  at " + uri + " unsuccessful")
+        logging.info("Creation of API session by " + user + " at " + uri + " unsuccessful")
         sys.exit()
     api_session.headers["referer"] = uri
     api_session.headers["X-CSRF-Token"] = api_session.cookies.get("isicsrf")
-    return api_session
+    return api_session, user
 
 
 def displaymenu():
@@ -88,9 +88,9 @@ def getsnapshots(api_session, uri):
     """This function lists all Snapshots,then prompts to write to csv,
     then prints the dataframe"""
     resourceurl = "/platform/1/snapshot/snapshots"
-    snapresult = api_session.get(uri + resourceurl, verify=False)
+    snapresult = api_session[0].get(uri + resourceurl, verify=False)
     if snapresult.status_code == 200 or snapresult.status_code == 201:
-        logging.info("GET request at " + uri + resourceurl + " successful")
+        logging.info("GET request by " + api_session[1] + " at " + uri + resourceurl + " successful")
         snapresult = json.loads(snapresult.content.decode(encoding="UTF-8"))
     elif snapresult.status_code != 200 or snapresult.status_code != 201:
         print(
@@ -98,7 +98,7 @@ def getsnapshots(api_session, uri):
             + uri
             + " Please try again.\n"
         )
-        logging.info("GET request at " + uri + resourceurl + " unsuccessful")
+        logging.info("GET request by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         return 0
     pd.set_option("display.max_rows", None)
     df = pd.DataFrame(snapresult["snapshots"], columns=["id", "name", "path", "size"])
@@ -147,9 +147,9 @@ def createchangelist(api_session, uri):
         "allow_dup": 4 == 1,
     }
     resourceurl = "/platform/7/job/jobs"
-    result = api_session.post(uri + resourceurl, verify=False, json=json_str)
+    result = api_session[0].post(uri + resourceurl, verify=False, json=json_str)
     if result.status_code == 200 or result.status_code == 201:
-        logging.info("POST request at " + uri + resourceurl + " successful")
+        logging.info("POST request by " + api_session[1] + " at "+ uri + resourceurl + " successful")
         result = result.json()
         job_id = str(result.get("id"))
         print("\nJob ID is " + job_id + "\n")
@@ -158,9 +158,9 @@ def createchangelist(api_session, uri):
         while sent_status != 1:
             print("\nQuerying status of job ID " + job_id + "\n")
             jobstatusurl = "/platform/7/job/jobs/" + job_id
-            result = api_session.get(uri + jobstatusurl, verify=False)
+            result = api_session[0].get(uri + jobstatusurl, verify=False)
             if result.status_code == 200 or result.status_code == 201:
-                logging.info("GET request at " + uri + jobstatusurl + " successful")
+                logging.info("GET request by " + api_session[1] + " at "+ uri + jobstatusurl + " successful")
                 result = result.json()
                 if result["jobs"][0]["state"] == "succeeded":
                     sent_status = 1
@@ -186,10 +186,10 @@ def createchangelist(api_session, uri):
                         count += 1
                         sleep(10)
             elif result.status_code != 200 or result.status_code != 201:
-                logging.info("GET request at " + uri + jobstatusurl + " unsuccessful")
+                logging.info("GET request by " + api_session[1] + " at " + uri + jobstatusurl + " unsuccessful")
                 print("\n Querying job status failed.")
     elif result.status_code != 200 or result.status_code != 201:
-        logging.info("POST request at " + uri + resourceurl + " unsuccessful")
+        logging.info("POST request by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print("\nJob Creation Failed. Try again")
         return
 
@@ -197,9 +197,9 @@ def createchangelist(api_session, uri):
 def listchangelists(api_session, uri):
     """This function list all ChangeLists"""
     resourceurl = "/platform/3/snapshot/changelists"
-    result = api_session.get(uri + resourceurl, verify=False)
+    result = api_session[0].get(uri + resourceurl, verify=False)
     if result.status_code == 200 or result.status_code == 201:
-        logging.info("GET request at " + uri + resourceurl + " successful")
+        logging.info("GET request by " + api_session[1] + " at "+ uri + resourceurl + " successful")
         result = result.json()
         print("List of ChangeLists:\n")
         pd.set_option("display.max_rows", None)
@@ -214,7 +214,7 @@ def listchangelists(api_session, uri):
             print("\n")
             return
     elif result.status_code != 200 or result.status_code != 201:
-        logging.info("GET request at " + uri + resourceurl + " successful")
+        logging.info("GET request at by " + api_session[1] + " at " + uri + resourceurl + " successful")
         print("\nGetting list of Changelists failed.")
         return
 
@@ -231,9 +231,9 @@ def getchangelist(api_session, uri):
         + " ? (y/n): \n"
     )
     resourceurl = "/platform/10/snapshot/changelists/" + changelistid + "/entries"
-    result = api_session.get(uri + resourceurl, verify=False)
+    result = api_session[0].get(uri + resourceurl, verify=False)
     if result.status_code == 200 or result.status_code == 201:
-        logging.info("GET request at " + uri + resourceurl + " successful")
+        logging.info("GET request at by " + api_session[1] + " at " + uri + resourceurl + " successful")
         result = result.json()
         entries = result["entries"]
         pd.set_option("display.max_rows", None)
@@ -254,7 +254,7 @@ def getchangelist(api_session, uri):
             )
         return
     elif result.status_code != 200 or result.status_code != 201:
-        logging.info("GET request at " + uri + resourceurl + " unsuccessful")
+        logging.info("GET request at by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print("Getting Changelist ID" + changelistid + " failed!")
         return
 
@@ -263,12 +263,12 @@ def deletechangelist(api_session, uri):
     """This function deletes a ChangeList ID specified by the user."""
     changelistid = input("What ChangeList ID would you like to delete?\n")
     resourceurl = "/platform/1/snapshot/changelists/" + changelistid
-    result = api_session.delete(uri + resourceurl, verify=False)
+    result = api_session[0].delete(uri + resourceurl, verify=False)
     if result.status_code == 204:
         print("\nChangelist successfully deleted.")
-        logging.info("DELETE request at " + uri + resourceurl + " successful")
+        logging.info("DELETE request by " + api_session[1] + " at " + uri + resourceurl + " successful")
     elif result.status_code != 204:
-        logging.info("DELETE request at " + uri + resourceurl + " unsuccessful")
+        logging.info("DELETE request by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print("\nOops! Something went wrong. Try again!\n")
         print("\nResult status code is: " + str(result.status_code))
     return result
@@ -284,7 +284,7 @@ def main():
 
 
     logging.basicConfig(
-        format="%(asctime)s - f'{user} - %(levelname)s - %(message)s",
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         filename="isi_tools.log",
         level=logging.INFO
     )
