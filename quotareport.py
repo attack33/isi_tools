@@ -12,9 +12,10 @@ import urllib3
 import pandas as pd
 
 
-def validateinput(ip, unit):
+def validateinput(ip, unit, csv):
     """This function checks for valid input"""
     units = ["M", "G", "T"]
+    csvlst =["y","n"]
     try:
         ipaddress.ip_address(ip)
     except ValueError:
@@ -26,20 +27,12 @@ def validateinput(ip, unit):
             "\nPlease enter a valid unit of measurement: M for MB, G for GB, or T for TB\n"
         )
         sys.exit()
-
-
-def printbanner():
-    """This function prints a banner"""
-    print(
-        """
-Welcome to
-  ___              _          ____                       _   
- / _ \ _   _  ___ | |_ __ _  |  _ \ ___ _ __   ___  _ __| |_ 
-| | | | | | |/ _ \| __/ _` | | |_) / _ \ '_ \ / _ \| '__| __|
-| |_| | |_| | (_) | || (_| | |  _ <  __/ |_) | (_) | |  | |_ 
- \__\_\\\__,_|\___/ \__\__,_| |_| \_\___| .__/ \___/|_|   \__|
-                                       |_|\n"""
-    )
+    if csv not in csvlst:
+        print(
+            "\nPlease enter a valid response of 'y' or 'n' to output a csv.\n"
+        )
+        sys.exit()
+    
 
 
 def getsession(uri):
@@ -78,7 +71,7 @@ def getsession(uri):
     return api_session, user
 
 
-def createquotareport(result, unit):
+def createquotareport(result, unit, csv):
     """This function creates a quota report with user defined measurement unit"""
     df = pd.json_normalize(result["quotas"])
     if df.empty:
@@ -130,36 +123,28 @@ def createquotareport(result, unit):
             df.columns.values[3] = "FSlogical(TB)"
             df.columns.values[4] = "APPphysical(TB)"
 
-        csvinquiry = input(
-            "\nWould you also like the quota report in csv format written to "
-            + os.getcwd()
-            + " ? (y/n):  "
-        )
         todaysdate = str(datetime.date.today())
-        if csvinquiry == "y":
+        if csv == "y":
             csvpath = "quota_report_" + todaysdate + ".csv"
             df.to_csv(csvpath, encoding="utf-8", index=False)
             print("\nList of Quotas:\n\n")
             return print(df.to_string(index=False) + "\n")
-        elif csvinquiry == "n":
+        elif csv == "n":
             print("\nList of Quotas:\n\n")
             return print(df.to_string(index=False) + "\n")
         else:
-            print(
-                "\nYou have entered a value other than (y) or (n) as a"
-                "response to writing csv file. Please try again.\n"
-            )
+            print("You have entered a value for csv that is not 'y' or 'n'. Try again!\n")
         return 0
 
 
-def getquotareport(api_session, uri, unit):
+def getquotareport(api_session, uri, unit, csv):
     """This function gets a quota report and passes it to createquotareport"""
     resourceurl = "/platform/15/quota/quotas"
     result = api_session[0].get(uri + resourceurl, verify=False)
     if result.status_code == 200 or result.status_code == 201:
         result = json.loads(result.content.decode(encoding="UTF-8"))
         logging.info("GET request by " + api_session[1] + " at " + uri + resourceurl + " successful")
-        createquotareport(result, unit)
+        createquotareport(result, unit, csv)
     elif result.status_code != 200 or result.status_code != 201:
         logging.info("GET request  by " + api_session[1] + " at " + uri + resourceurl + " unsuccessful")
         print(
@@ -177,9 +162,19 @@ def main():
     parser = argparse.ArgumentParser(description="Generate a Quota Report")
     parser.add_argument("ip", help="Enter a valid IP address")
     parser.add_argument("unit", help="Enter an M for MB, G for GB, or T for TB")
+    parser.add_argument(
+        "-o",
+        "--outputcsv",
+        help="Type 'y' for yes, and 'n' for no to output a csv",
+    )
     args = parser.parse_args()
     ip = args.ip
     unit = args.unit
+
+    if args.outputcsv is not None:
+        csv = args.outputcsv
+    elif args.outputcsv is None:
+        csv = 'n'
 
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -187,14 +182,14 @@ def main():
         level=logging.INFO,
     )
 
-    validateinput(ip, unit)
-    printbanner()
+    validateinput(ip, unit, csv)
+
 
     port = 8080
     uri = "https://" + str(ip) + ":" + str(port)
 
     api_session = getsession(uri)
-    getquotareport(api_session, uri, unit)
+    getquotareport(api_session, uri, unit, csv)
 
 
 if __name__ == "__main__":
