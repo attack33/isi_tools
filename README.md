@@ -9,6 +9,9 @@ isi_tools is useful for the folks interested in automating administrative tasks 
 
 If you feel this is a bit advanced for your current understanding of how to interact with the Powerscale API, check out <a href="https://github.com/j-sims/IsilonAPIQuickStartGuidePython">IsilonAPIQuickStartGuidePython</a> for some great examples!
 
+<h3>Why the rage?</h3>
+It is a bit of an inside joke, but lets just say <a href="https://github.com/attack33">attack33</a> has a serious dislike for manual overcomplicated processes.
+
 <h3>Getting started with isi_tools</h3>
 1. Clone the repo and run 'pip install -r requirements.txt'<br /><br />
 2. isi_tools starts with a decision on whether you want to run config.py and supply your user name and password. This is your personal choice. BEWARE: your password will be stored base64 encoded in a file called creds.json within isi_tools directory. This will allow you to run any "isi_" prefixed tool without supplying credentials each time. If you run config.py and then want to delete creds.json after you're done, then go ahead! You have the choice to run it next time you interact with the repo or not.<br /><br />
