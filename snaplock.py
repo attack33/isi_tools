@@ -80,7 +80,7 @@ def locksnapshot(api_session, uri, snapid, timestamp):
         resourceurl = "/platform/12/snapshot/snapshots/" + snap + "/locks"
         print("\nProceeding with creation of snapshot lock...\n")
         if timestamp == 0:
-            noxdata = json.dumps({"comment": "This lock was created by isi_snaplock."})
+            noxdata = json.dumps({"comment": "This lock was created by snaplock."})
             response = api_session[0].post(uri + resourceurl, data=noxdata, verify=False)
             if response.status_code == 200 or response.status_code == 201:
                 logging.info("POST request by " + api_session[1] + " at "  + uri + resourceurl + " successful")
